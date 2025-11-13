@@ -1,16 +1,64 @@
-# node
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+
+# Node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 dist/
 .build/
 .next/
-.env*
-# python
-__pycache__/
-*.pyc
-.venv/
-.env/
-.cache/
-.ipynb_checkpoints/
-# os/editor
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
+logs/
+
+# Data
+*.csv
+data/
+plot.jpg
+*.jpg
+*.png
+
+# Docker
+.dockerignore
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary
+tmp/
+temp/
+*.tmp

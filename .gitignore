@@ -1,0 +1,16 @@
+# node
+node_modules/
+dist/
+.build/
+.next/
+.env*
+# python
+__pycache__/
+*.pyc
+.venv/
+.env/
+.cache/
+.ipynb_checkpoints/
+# os/editor
+.DS_Store
+*.log

@@ -30,3 +30,7 @@ export const useStore = create<Store>((set) => ({
   clearOutput: () => set({ output: [] }),
 }))
 
+
+
+
+

@@ -112,9 +112,15 @@ def sanitize_filename(filename: str) -> tuple[bool, Optional[str]]:
     if not any(filename.lower().endswith(ext) for ext in ALLOWED_EXTENSIONS):
         return False, f"File type not allowed. Allowed extensions: {', '.join(ALLOWED_EXTENSIONS)}"
     
-    # Sanitize: only alphanumeric, dots, underscores, hyphens
-    sanitized = "".join(c for c in filename if c.isalnum() or c in "._-")
-    if sanitized != filename:
+    # Sanitize: only alphanumeric, dots, underscores, hyphens, spaces
+    # Allow spaces in filenames (common in user uploads)
+    sanitized = "".join(c for c in filename if c.isalnum() or c in "._- ")
+    # Remove leading/trailing spaces but allow spaces in middle
+    sanitized = sanitized.strip()
+    
+    # Check for dangerous characters (but allow spaces)
+    dangerous_chars = ['<', '>', '|', '&', ';', '`', '$', '(', ')', '{', '}', '[', ']']
+    if any(char in filename for char in dangerous_chars):
         return False, "Filename contains invalid characters"
     
     return True, filename
@@ -134,4 +140,6 @@ def validate_command_length(command: str) -> tuple[bool, Optional[str]]:
     if len(command) > max_length:
         return False, f"Command length exceeds maximum of {max_length} bytes"
     return True, None
+
+
 

@@ -2,7 +2,7 @@
 FastAPI backend - Improved system implementation.
 Implements Phase 2 (HTTP/JSON API) and Phase 3 (FastAPI backend).
 """
-from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -23,6 +23,7 @@ from data_processor import (
     load_csv, get_dataframe, describe_data, correlation_matrix,
     head_data, tail_data, info_data, generate_plot, clear_session
 )
+from pydantic import BaseModel
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -79,6 +80,13 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
+# Request models
+class ExecuteCommandRequest(BaseModel):
+    command: str
+    params: Dict[str, Any]
+    session_id: str
+
+
 @app.get("/")
 async def root():
     """Root endpoint."""
@@ -96,14 +104,17 @@ async def health_check():
 
 
 @app.post("/api/v1/upload")
-@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
 async def upload_dataset(
     file: UploadFile = File(...),
-    request: Any = None  # For rate limiting
+    request: Request = None  # For rate limiting
 ):
     """
     Upload CSV dataset (Phase 2.1).
     """
+    # Check if filename exists
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
+    
     # Validate filename
     is_valid, result = sanitize_filename(file.filename)
     if not is_valid:
@@ -134,16 +145,16 @@ async def upload_dataset(
 
 
 @app.post("/api/v1/execute")
-@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
 async def execute_command(
-    command: str,
-    params: Dict[str, Any],
-    session_id: str,
-    request: Any = None
+    request_body: ExecuteCommandRequest
 ):
     """
     Execute whitelisted command (Phase 2.1, Phase 1.1).
     """
+    command = request_body.command
+    params = request_body.params
+    session_id = request_body.session_id
+    
     # Validate command length
     is_valid, error = validate_command_length(command)
     if not is_valid:

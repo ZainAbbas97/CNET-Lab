@@ -62,3 +62,10 @@ htmlcov/
 tmp/
 temp/
 *.tmp
+
+# Archives & binaries
+*.zip
+*.app
+*.class
+cortese-font-family-*/
+i221905_i221862_i222058/

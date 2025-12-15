@@ -11,7 +11,7 @@ np.random.seed(42)
 # Generate 46 records (inferred from paper's pie chart output)
 data = {
     'area': np.random.randint(1000, 5000, 46),
-    'rooms': np.random.choice([1, 2, 3, 4, 5], 46, p=[0.02, 0.13, 0.54, 0.28, 0.02]),
+    'rooms': np.random.choice([1, 2, 3, 4, 5], 46, p=[0.02, 0.13, 0.54, 0.28, 0.03]),
     'price': np.random.randint(169900, 700000, 46)
 }
 

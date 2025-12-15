@@ -161,32 +161,98 @@ def generate_plot(
         # Generate plot based on type
         if plot_type == "bar":
             if x and y:
-                fig = px.bar(df, x=x, y=y, title=title or f"{y} by {x}")
+                # For bar charts, group by X and aggregate Y for better visualization
+                # This shows average/mean Y value for each X category
+                if df[x].nunique() < df.shape[0]:
+                    # Group by x and aggregate y (mean) - better for categorical or repeated x values
+                    grouped = df.groupby(x)[y].agg(['mean', 'count']).reset_index()
+                    grouped.columns = [x, y, '_count']
+                    fig = px.bar(
+                        grouped, 
+                        x=x, 
+                        y=y, 
+                        title=title or f"Average {y} by {x}",
+                        labels={x: xlabel or x, y: ylabel or f"Average {y}"},
+                        text=y,  # Show values on bars
+                        text_auto='.2s'  # Format numbers
+                    )
+                else:
+                    # If every x value is unique, use data directly
+                    fig = px.bar(
+                        df, 
+                        x=x, 
+                        y=y, 
+                        title=title or f"{y} by {x}",
+                        labels={x: xlabel or x, y: ylabel or y}
+                    )
+                # Improve bar chart appearance
+                fig.update_traces(
+                    marker_color='steelblue',
+                    marker_line_color='darkblue',
+                    marker_line_width=1.5,
+                    opacity=0.85,
+                    textposition='outside'
+                )
+                fig.update_layout(
+                    bargap=0.3,
+                    xaxis_tickangle=-45 if df[x].dtype == 'object' else 0,
+                    height=500,
+                    showlegend=False,
+                    hovermode='x unified'
+                )
             else:
                 return {"error": "Bar plot requires x and y parameters"}
         
         elif plot_type == "line":
             if x and y:
-                fig = px.line(df, x=x, y=y, title=title or f"{y} over {x}")
+                fig = px.line(
+                    df, 
+                    x=x, 
+                    y=y, 
+                    title=title or f"{y} over {x}",
+                    labels={x: xlabel or x, y: ylabel or y}
+                )
+                fig.update_traces(line_width=2, marker_size=4)
+                fig.update_layout(height=500)
             else:
                 return {"error": "Line plot requires x and y parameters"}
         
         elif plot_type == "scatter":
             if x and y:
-                fig = px.scatter(df, x=x, y=y, title=title or f"{y} vs {x}")
+                fig = px.scatter(
+                    df, 
+                    x=x, 
+                    y=y, 
+                    title=title or f"{y} vs {x}",
+                    labels={x: xlabel or x, y: ylabel or y}
+                )
+                fig.update_traces(marker_size=8, opacity=0.6)
+                fig.update_layout(height=500)
             else:
                 return {"error": "Scatter plot requires x and y parameters"}
         
         elif plot_type == "histogram":
             if x:
-                fig = px.histogram(df, x=x, title=title or f"Distribution of {x}")
+                fig = px.histogram(
+                    df, 
+                    x=x, 
+                    title=title or f"Distribution of {x}",
+                    labels={x: xlabel or x}
+                )
+                fig.update_traces(marker_color='steelblue', opacity=0.7)
+                fig.update_layout(height=500, showlegend=False)
             else:
                 return {"error": "Histogram requires x parameter"}
         
         elif plot_type == "pie":
             if x:
                 value_counts = df[x].value_counts()
-                fig = px.pie(values=value_counts.values, names=value_counts.index, title=title or f"Distribution of {x}")
+                fig = px.pie(
+                    values=value_counts.values, 
+                    names=value_counts.index, 
+                    title=title or f"Distribution of {x}"
+                )
+                fig.update_layout(height=500)
             else:
                 return {"error": "Pie chart requires x parameter"}
         
@@ -195,22 +261,45 @@ def generate_plot(
             if len(numeric_df.columns) == 0:
                 return {"error": "No numeric columns for heatmap"}
             corr = numeric_df.corr()
-            fig = px.imshow(corr, title=title or "Correlation Heatmap", text_auto=True)
+            fig = px.imshow(
+                corr, 
+                title=title or "Correlation Heatmap", 
+                text_auto=True,
+                aspect="auto",
+                color_continuous_scale="RdBu"
+            )
+            fig.update_layout(height=500)
         
         elif plot_type == "box":
             if x and y:
-                fig = px.box(df, x=x, y=y, title=title or f"{y} by {x}")
+                fig = px.box(
+                    df, 
+                    x=x, 
+                    y=y, 
+                    title=title or f"{y} by {x}",
+                    labels={x: xlabel or x, y: ylabel or y}
+                )
+                fig.update_traces(marker_color='steelblue')
+                fig.update_layout(height=500)
             else:
                 return {"error": "Box plot requires x and y parameters"}
         
         else:
             return {"error": f"Unknown plot type: {plot_type}"}
         
-        # Update labels
-        if xlabel:
+        # Update labels (if not already set in plot creation)
+        if xlabel and not hasattr(fig, '_xlabel_set'):
             fig.update_xaxes(title=xlabel)
-        if ylabel:
+        if ylabel and not hasattr(fig, '_ylabel_set'):
             fig.update_yaxes(title=ylabel)
+        
+        # Apply consistent styling to all plots
+        fig.update_layout(
+            template='plotly_white',
+            font=dict(size=12),
+            title_font_size=16,
+            margin=dict(l=60, r=20, t=60, b=60)
+        )
         
         # Return based on format
         if format_type == "plotly":

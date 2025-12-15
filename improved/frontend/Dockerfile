@@ -17,3 +17,7 @@ EXPOSE 3000
 # Run development server
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
+
+
+
+
